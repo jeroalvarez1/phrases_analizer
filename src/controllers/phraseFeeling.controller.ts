@@ -42,24 +42,25 @@ export class PhraseFeelingController {
     
     public async getPhraseFelingTotalAverage(req: Request, res: Response) {
         const phraseFeelingService = new PhraseFeelingService();
-        const average = await phraseFeelingService.averageAllPhraseFeling();
+        const average: any = await phraseFeelingService.averageAllPhraseFeling();
         if (average === false) {
             res.sendStatus(204);
         }
-        if (average) {
+        if (average != false) {
             let vote = '';
-            if (average > 0) {
+            if (average[0] > 0) {
                 vote = 'More positive that negative';
-            } else if (average < 0) {
+            } else if (average[0] < 0) {
                 vote = 'More negative that positive';
-            } else {
+            } else if (average[0] == 0) {
                 vote = 'Neutral';
             }
             return res.json({
-                scoreAverage: average,
+                mean: average[0],
+                mode: average[1],
                 vote: vote
             });   
-        }
+        } 
     }
 
 }

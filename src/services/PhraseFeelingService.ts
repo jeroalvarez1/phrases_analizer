@@ -1,14 +1,16 @@
 const { SentimentAnalyzer } = require('node-nlp');
 //import { connect } from "../database";
 import { connectdb } from "../db";
-
+import { PhraseFeeling } from "../interfaces/phraseFeeling.iterface";
+import { Mean } from "../operations/mean";
+import { Mode } from "../operations/mode";
 
 export class PhraseFeelingService {
 
     public constructor() {  };
 
     public async createPhraseFeeling(phrase: any) {
-        const sentiment = new SentimentAnalyzer({ language: 'es' });
+        const sentiment = new SentimentAnalyzer({ language: 'en' });
         const result = await sentiment.getSentiment(phrase.contents);
         return result;
     };
@@ -19,16 +21,15 @@ export class PhraseFeelingService {
         if (!('' + query[0])) {
             return false;
         } else {
-            const phrasesFeeling = query[0];
-            //Saca cual es el promedio de las frases
-            let sum = 0;
-            let cont = 0;
-            for (const [key, value] of Object.entries(phrasesFeeling)) {
-                sum += value.score;
-                cont += 1;
+            let phrasesFeeling: Array<PhraseFeeling> = [];
+            for (const [key, value] of Object.entries(query[0])) {
+                phrasesFeeling.push(value);
             }
-            console.log(sum)
-            let result = sum / cont;
+            const mean = new Mean();
+            let result = [];
+            result.push(mean.calculate(phrasesFeeling));
+            const mode = new Mode();
+            result.push(mode.calculate(phrasesFeeling));
             return result;
         }
     }
