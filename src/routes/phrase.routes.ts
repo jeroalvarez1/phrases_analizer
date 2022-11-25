@@ -7,6 +7,7 @@ const phrase = new PhraseController();
 router.route('/phrase')
     .get(phrase.getPhrase)
     .post(phrase.createPhrase)
+    .delete(phrase.deleteAll)
 
 router.route('/phrase/:phraseId')
     .get(phrase.getPhraseById)

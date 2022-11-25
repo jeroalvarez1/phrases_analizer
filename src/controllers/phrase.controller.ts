@@ -3,6 +3,7 @@ import { connect } from "../database";
 import { Err } from "../interfaces/err.interface";
 import { PhraseFeeling } from "../interfaces/phraseFeeling.iterface";
 import { PhraseFeelingController } from "./phraseFeeling.controller";
+import { PhraseFeelingService } from "../services/PhraseFeelingService";
 
 //import Phrase interface
 
@@ -57,8 +58,8 @@ export class PhraseController {
                 res.status(400).send(errorCode);
             };
             if (result) {
-                const phraseFeelingController = new PhraseFeelingController();
-                const phraseFeeling = await phraseFeelingController.createPhraseFeeling(req.body);
+                const phraseFeelingService = new PhraseFeelingService();
+                const phraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
                 let set: PhraseFeeling = phraseFeeling;
                 set.phrases_idphrases = result.insertId;
                 conn.query('INSERT INTO phrase_feeling SET ?', set, (error: any, result: any) => {
@@ -110,5 +111,19 @@ export class PhraseController {
         });
     };
 
+    public async deleteAll(req: Request, res: Response) {
+        const conn = await connect();
+        conn.query('DELETE FROM phrases;', (error: any, result: any) => {
+            if (error) {
+                const errorCode: Err = {
+                    code: error.code
+                }
+                res.status(400).send(errorCode);
+            };
+            if(result) {
+                res.sendStatus(200);
+            };
+        });
+    }
     
 }
