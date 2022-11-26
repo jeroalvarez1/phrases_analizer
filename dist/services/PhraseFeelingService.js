@@ -15,6 +15,7 @@ const { SentimentAnalyzer } = require('node-nlp');
 const db_1 = require("../db");
 const mean_1 = require("../operations/mean");
 const mode_1 = require("../operations/mode");
+const variance_1 = require("../operations/variance");
 class PhraseFeelingService {
     constructor() { }
     ;
@@ -42,6 +43,8 @@ class PhraseFeelingService {
                 let result = [];
                 result.push(mean.calculate(phrasesFeeling));
                 const mode = new mode_1.Mode();
+                const variance = new variance_1.Variance();
+                variance.calculateVariance(phrasesFeeling);
                 result.push(mode.calculate(phrasesFeeling));
                 return result;
             }

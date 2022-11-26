@@ -4,6 +4,7 @@ import { connectdb } from "../db";
 import { PhraseFeeling } from "../interfaces/phraseFeeling.iterface";
 import { Mean } from "../operations/mean";
 import { Mode } from "../operations/mode";
+import { Variance } from "../operations/variance";
 
 export class PhraseFeelingService {
 
@@ -29,6 +30,11 @@ export class PhraseFeelingService {
             let result = [];
             result.push(mean.calculate(phrasesFeeling));
             const mode = new Mode();
+
+            const variance = new Variance();
+            variance.calculateVariance(phrasesFeeling);
+
+
             result.push(mode.calculate(phrasesFeeling));
             return result;
         }

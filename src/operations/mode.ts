@@ -4,7 +4,7 @@ export class Mode extends Operations {
     
     public calculate(data: Array<PhraseFeeling>) {
         this.setData(data);
-        
+    
         const scoreList: number[] = this.getOrganizeScore();
         const scoreListSet = new Set(scoreList);
         let cont = 0;
