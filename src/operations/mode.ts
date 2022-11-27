@@ -1,38 +1,28 @@
-import { PhraseFeeling } from '../interfaces/phraseFeeling.iterface';
 import { Operations } from './operations';
+import { ScoreClass } from '../interfaces/scoreClass.interface';
 export class Mode extends Operations {
-    
-    public calculate(data: Array<PhraseFeeling>) {
-        this.setData(data);
-    
-        const scoreList: number[] = this.getOrganizeScore();
-        const scoreListSet = new Set(scoreList);
-        let cont = 0;
-        let table: Array<number[]> = [];
-        
-        scoreListSet.forEach(i => {
-            scoreList.forEach(j => {
-                if (j === i) {
-                    cont++;
-                }
-            });
-            table.push([i,cont])
-            cont = 0;
-        });
-        let mode: Array<number[]> = [];
-        let m = 0;
-        table.forEach(i => {
-            if (i[1] >= m) {
-                if (i[1] > m) {
+
+    constructor() {
+        super();
+    };
+
+    public async calculateMode() {
+        await this.setData();
+        this.setScore();
+        let mode: Array<ScoreClass> = [];
+        let m: number = 0;
+        this.groupScore().forEach(i => {
+            if (i.rep >= m) {
+                if (i.rep > m) {
                     mode = [];
                     mode.push(i);
-                } else if (i[1] === m) {
+                }
+                if (i.rep === m) {
                     mode.push(i);
                 }
-                m = i[1];
+                m = i.rep;
             }
         });
-        
         return mode;
     }
 }

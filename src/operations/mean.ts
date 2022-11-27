@@ -1,9 +1,13 @@
-import { PhraseFeeling } from '../interfaces/phraseFeeling.iterface';
 import { Operations } from './operations';
 export class Mean extends Operations {
     
-    public calculate(data: Array<PhraseFeeling>) {
-        this.setData(data);
+    constructor() {
+        super();
+    };
+
+    public async calculateMean() {
+        await this.setData();
+        this.setScore();
         let sum = 0;
         let cont: number = 0;
         let scoreList = this.getOrganizeScore();
@@ -11,6 +15,10 @@ export class Mean extends Operations {
             sum = sum + element;
             cont++;
         });
-        return (sum / cont);
+        return [
+            {
+                mean: (sum / cont)
+            }
+        ];
     }
 }

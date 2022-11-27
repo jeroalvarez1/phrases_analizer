@@ -10,6 +10,12 @@ router.route('/phrasefeeling')
 router.route('/phrase/:phraseId/phrasefeeling')
     .get(phraseFeeling.getPhraseFeelingByidPhrase)
     
-router.route('/phrasefeeling/average')
-    .get(phraseFeeling.getPhraseFelingTotalAverage)
+router.route('/phrasefeeling/mode')
+    .get(phraseFeeling.getMode)
+
+router.route('/phrasefeeling/mean')
+    .get(phraseFeeling.getMean)
+
+router.route('/phrasefeeling/frecuencytable')
+    .get(phraseFeeling.getFrecuencyTable)
 export default router;

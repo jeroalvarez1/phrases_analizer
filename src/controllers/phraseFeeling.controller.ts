@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { connect } from "../database";
 import { Err } from "../interfaces/err.interface";
-import { PhraseFeelingService } from '../services/PhraseFeelingService';
+import { Mode } from '../operations/mode';
+import { Mean } from '../operations/mean';
+import { Operations } from "../operations/operations";
 
 export class PhraseFeelingController {
     
@@ -40,27 +42,21 @@ export class PhraseFeelingController {
         });
     };
     
-    public async getPhraseFelingTotalAverage(req: Request, res: Response) {
-        const phraseFeelingService = new PhraseFeelingService();
-        const average: any = await phraseFeelingService.averageAllPhraseFeling();
-        if (average === false) {
-            res.sendStatus(204);
-        }
-        if (average != false) {
-            let vote = '';
-            if (average[0] > 0) {
-                vote = 'More positive that negative';
-            } else if (average[0] < 0) {
-                vote = 'More negative that positive';
-            } else if (average[0] == 0) {
-                vote = 'Neutral';
-            }
-            return res.json({
-                mean: average[0],
-                mode: average[1],
-                vote: vote
-            });   
-        } 
+    public async getMode(req: Request, res: Response) {
+        const mode = new Mode();
+        res.status(200).send(await mode.calculateMode());
+    }
+
+    public async getMean(req: Request, res: Response) {
+        const mean = new Mean();
+        res.status(200).send(await mean.calculateMean());
+    }
+
+    public async getFrecuencyTable(req: Request, res: Response) {
+        let operations = new Operations();
+        await operations.setData();
+        operations.setScore();
+        res.status(200).send(operations.groupScore());
     }
 
 }

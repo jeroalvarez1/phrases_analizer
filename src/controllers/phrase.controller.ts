@@ -59,8 +59,7 @@ export class PhraseController {
             };
             if (result) {
                 const phraseFeelingService = new PhraseFeelingService();
-                const phraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
-                let set: PhraseFeeling = phraseFeeling;
+                let set: PhraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
                 set.phrases_idphrases = result.insertId;
                 conn.query('INSERT INTO phrase_feeling SET ?', set, (error: any, result: any) => {
                     if (error) {
