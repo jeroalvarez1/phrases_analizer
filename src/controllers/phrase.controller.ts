@@ -4,6 +4,8 @@ import { Err } from "../interfaces/err.interface";
 import { PhraseFeeling } from "../interfaces/phraseFeeling.iterface";
 import { PhraseFeelingService } from "../services/PhraseFeelingService";
 import { Prisma, PrismaClient } from '@prisma/client'
+import { Errors } from "../accessories/errors";
+import { ResEmpty } from '../accessories/resEmpty';
 
 //import Phrase interface
 
@@ -12,81 +14,79 @@ export class PhraseController {
 
     public constructor() {};
 
+    //Este metodo obtiene todos las Phrases
     public async getPhrase(req: Request, res: Response) {
-        const prisma = new PrismaClient()
+        const prisma = new PrismaClient();
         try {
             const allPhrases = await prisma.phrases.findMany({
                 include: {
                     phrase_feeling: true
                 }
             });
-
-            if (!allPhrases) {
-                res.sendStatus(204);
-            } else {
-                res.status(200).send(allPhrases);
-            }
-            
+            const resEmpty = new ResEmpty();
+            resEmpty.resEmpty(allPhrases, res);
         } catch (error) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                res.status(400).send({
-                    code: error.code,
-                    message: error.message
-                });   
-            }
-            if (error instanceof Prisma.PrismaClientUnknownRequestError) {
-                res.status(400).send({
-                    message: error.message
-                })
-            }
+            const errors = new Errors();
+            errors.prismaClientKnownRequestError(error, res);
+            errors.prismaClientUnknownRequestError(error, res);
         }
     }
 
+    //Este metodo devuelve una phrase por id
     public async getPhraseById(req: Request, res: Response) {
-        const conn = await connect();
-        conn.query('SELECT * FROM phrases WHERE idphrases = ?', req.params.phraseId, (error: any, result: any) => {
-            if (error) {
-                const errorCode: Err = {
-                    code: error.code
+        const prisma = new PrismaClient();
+        try {
+            const phrase = await prisma.phrases.findUnique({
+                where: {
+                    idphrases: Number(req.params.phraseId)
+                },
+                include: {
+                    phrase_feeling: true
                 }
-                res.status(400).send(errorCode);
-            };
-            if (!('' + result)) {
-                res.sendStatus(204);  
-            } else {
-                res.status(200).send(result);
-            };
-        });
-
-
+            });
+            const resEmpty = new ResEmpty();
+            resEmpty.resEmpty(phrase, res);
+        } catch (error) {
+            const errors = new Errors();
+            errors.prismaClientKnownRequestError(error, res);
+            errors.prismaClientUnknownRequestError(error, res);
+        }
     };
 
     public async createPhrase(req: Request, res: Response) {
-        const conn = await connect();
-        conn.query('INSERT INTO phrases SET ?', req.body, async (error: any, result: any) => {
-            if (error) {
-                const errorCode: Err = {
-                    code: error.code
+        const prisma = new PrismaClient();
+        const errors = new Errors();
+        try {
+            const newPhrase = await prisma.phrases.create({
+                data: {
+                    contents: req.body.contents,
                 }
-                res.status(400).send(errorCode);
-            };
-            if (result) {
+            });
+            try {
                 const phraseFeelingService = new PhraseFeelingService();
                 let set: PhraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
-                set.phrases_idphrases = result.insertId;
-                conn.query('INSERT INTO phrase_feeling SET ?', set, (error: any, result: any) => {
-                    if (error) {
-                        const errorCode: Err = {
-                            code: error.code
-                        }
-                        res.status(400).send(errorCode);
-                    };
-                    if (result) {
-                        res.sendStatus(201);   
+                set.phrases_idphrases = newPhrase.idphrases;
+                await prisma.phrase_feeling.create({
+                    data: {
+                        score: set.score,
+                        numWords: set.numWords,
+                        numHits: set.numHits,
+                        average: set.average,
+                        type: set.type,
+                        locale: set.locale,
+                        vote: set.vote,
+                        phrases_idphrases: set.phrases_idphrases,
                     }
-                })
-            };
-        });
+                });
+                res.sendStatus(201);
+            } catch (error) {
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
+        } catch (error) {
+            errors.prismaClientKnownRequestError(error, res);
+            errors.prismaClientUnknownRequestError(error, res);
+        }
     };
 
     public async updatePhrase(req: Request, res: Response) {
