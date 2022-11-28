@@ -9,7 +9,7 @@ export class StandardDeviation extends Variance {
     public calculateDeviation() {
         return [
             {
-                standarddeviation: Math.sqrt(this.calculateVariance()[0].variance)
+                standardDeviation: Math.sqrt(this.calculateVariance()[0].variance)
             }
         ];
     }

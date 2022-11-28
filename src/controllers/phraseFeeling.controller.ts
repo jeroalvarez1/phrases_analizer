@@ -6,6 +6,7 @@ import { Mean } from '../operations/mean';
 import { Operations } from "../operations/operations";
 import { Variance } from "../operations/variance";
 import { StandardDeviation } from "../operations/standardDeviation";
+import { CoefficientVariation } from "../operations/coefficientVariation";
 
 export class PhraseFeelingController {
     
@@ -77,6 +78,13 @@ export class PhraseFeelingController {
         await standardDeviation.setData();
         standardDeviation.setScore();
         res.status(200).send(standardDeviation.calculateDeviation());
+    }
+
+    public async getCoefficientVariation(req: Request, res: Response) {
+        let coefficientVariation = new CoefficientVariation();
+        await coefficientVariation.setData();
+        coefficientVariation.setScore();
+        res.status(200).send(coefficientVariation.calculateCofficient());
     }
 
 }
