@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { connect } from "../database";
 import { Err } from "../interfaces/err.interface";
 import { PhraseFeeling } from "../interfaces/phraseFeeling.iterface";
-import { PhraseFeelingController } from "./phraseFeeling.controller";
 import { PhraseFeelingService } from "../services/PhraseFeelingService";
+import { Prisma, PrismaClient } from '@prisma/client'
 
 //import Phrase interface
 
@@ -13,20 +13,33 @@ export class PhraseController {
     public constructor() {};
 
     public async getPhrase(req: Request, res: Response) {
-        const conn = await connect();
-        conn.query('SELECT * FROM phrases', (error: any, result:any) => {
-            if (error) {
-                const errorCode: Err = {
-                    code: error.code
+        const prisma = new PrismaClient()
+        try {
+            const allPhrases = await prisma.phrases.findMany({
+                include: {
+                    phrase_feeling: true
                 }
-                res.status(400).send(errorCode);
-            };
-            if (!('' + result)) {
+            });
+
+            if (!allPhrases) {
                 res.sendStatus(204);
             } else {
-                res.status(200).send(result);
-            };           
-        });
+                res.status(200).send(allPhrases);
+            }
+            
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                res.status(400).send({
+                    code: error.code,
+                    message: error.message
+                });   
+            }
+            if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+                res.status(400).send({
+                    message: error.message
+                })
+            }
+        }
     }
 
     public async getPhraseById(req: Request, res: Response) {

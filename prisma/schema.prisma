@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model phrase_feeling {
+  idphrase_feeling  Int     @id @default(autoincrement())
+  score             Float   @db.Float
+  numWords          Int
+  numHits           Int
+  average           Float   @db.Float
+  type              String  @db.VarChar(45)
+  locale            String  @db.VarChar(4)
+  vote              String  @db.VarChar(45)
+  phrases_idphrases Int
+  phrases           phrases @relation(fields: [phrases_idphrases], references: [idphrases], onDelete: Cascade, map: "fk_phrase_feeling_phrases")
+
+  @@index([phrases_idphrases], map: "fk_phrase_feeling_phrases_idx")
+}
+
+model phrases {
+  idphrases      Int              @id @default(autoincrement())
+  contents       String           @db.Text
+  phrase_feeling phrase_feeling[]
+}
