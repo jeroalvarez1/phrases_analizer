@@ -22,4 +22,7 @@ router.route('/phrasefeeling/frecuencytable')
 router.route('/phrasefeeling/variance')
     .get(phraseFeeling.getVariance)    
 
+router.route('/phrasefeeling/standarddeviation')
+    .get(phraseFeeling.getStandardDeviation)    
+    
     export default router;

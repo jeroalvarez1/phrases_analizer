@@ -1,10 +1,11 @@
-import { Request, Response } from "express";
+import { request, Request, Response } from "express";
 import { connect } from "../database";
 import { Err } from "../interfaces/err.interface";
 import { Mode } from '../operations/mode';
 import { Mean } from '../operations/mean';
 import { Operations } from "../operations/operations";
 import { Variance } from "../operations/variance";
+import { StandardDeviation } from "../operations/standardDeviation";
 
 export class PhraseFeelingController {
     
@@ -47,14 +48,14 @@ export class PhraseFeelingController {
         const mode = new Mode();
         await mode.setData();
         mode.setScore();
-        res.status(200).send(await mode.calculateMode());
+        res.json(mode.calculateMode());
     }
 
     public async getMean(req: Request, res: Response) {
         const mean = new Mean();
         await mean.setData();
-        await mean.setScore();
-        res.status(200).send(await mean.calculateMean());
+        mean.setScore();
+        res.status(200).send(mean.calculateMean());
     }
 
     public async getFrecuencyTable(req: Request, res: Response) {
@@ -68,7 +69,14 @@ export class PhraseFeelingController {
         let variance = new Variance();
         await variance.setData();
         variance.setScore();
-        res.status(200).send(await variance.calculateVariance());
+        res.status(200).send(variance.calculateVariance());
+    }
+
+    public async getStandardDeviation(req: Request, res: Response) {
+        let standardDeviation = new StandardDeviation();
+        await standardDeviation.setData();
+        standardDeviation.setScore();
+        res.status(200).send(standardDeviation.calculateDeviation());
     }
 
 }
