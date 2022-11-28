@@ -18,4 +18,8 @@ router.route('/phrasefeeling/mean')
 
 router.route('/phrasefeeling/frecuencytable')
     .get(phraseFeeling.getFrecuencyTable)
-export default router;
+
+router.route('/phrasefeeling/variance')
+    .get(phraseFeeling.getVariance)    
+
+    export default router;

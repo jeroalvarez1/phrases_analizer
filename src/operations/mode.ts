@@ -7,8 +7,6 @@ export class Mode extends Operations {
     };
 
     public async calculateMode() {
-        await this.setData();
-        this.setScore();
         let mode: Array<ScoreClass> = [];
         let m: number = 0;
         this.groupScore().forEach(i => {

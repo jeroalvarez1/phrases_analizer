@@ -4,6 +4,7 @@ import { Err } from "../interfaces/err.interface";
 import { Mode } from '../operations/mode';
 import { Mean } from '../operations/mean';
 import { Operations } from "../operations/operations";
+import { Variance } from "../operations/variance";
 
 export class PhraseFeelingController {
     
@@ -44,11 +45,15 @@ export class PhraseFeelingController {
     
     public async getMode(req: Request, res: Response) {
         const mode = new Mode();
+        await mode.setData();
+        mode.setScore();
         res.status(200).send(await mode.calculateMode());
     }
 
     public async getMean(req: Request, res: Response) {
         const mean = new Mean();
+        await mean.setData();
+        await mean.setScore();
         res.status(200).send(await mean.calculateMean());
     }
 
@@ -57,6 +62,13 @@ export class PhraseFeelingController {
         await operations.setData();
         operations.setScore();
         res.status(200).send(operations.groupScore());
+    }
+
+    public async getVariance(req: Request, res: Response) {
+        let variance = new Variance();
+        await variance.setData();
+        variance.setScore();
+        res.status(200).send(await variance.calculateVariance());
     }
 
 }

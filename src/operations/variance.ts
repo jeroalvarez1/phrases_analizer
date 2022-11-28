@@ -1,17 +1,23 @@
-import { PhraseFeeling } from "../interfaces/phraseFeeling.iterface";
-import { Mode } from "./mode";
+import { Mean } from './mean';
 
-export class Variance extends Mode{
+export class Variance extends Mean{
 
-    public calculateVariance(data: Array<PhraseFeeling>) {
-        this.setData(data);
-        const scoreList = this.getOrganizeScore();
-        console.log(scoreList);
-        let variance: number = 0;
-        //const mode = this.calculate(scoreList);
-        //scoreList.forEach(i => {
-        //    variance = i - 
-        //});
-        //
+    constructor() {
+        super();
+    };
+
+    public async calculateVariance() {
+        let S2: number = 0;
+        let N: number = 0;
+        this.groupScore().forEach(async i => {
+            S2 = S2 + (Math.pow((((i.lneg + i.lpos)/2) - this.calculateMean()[0].mean), 2) * i.rep);
+            N = N + i.rep;
+        })
+        console.log(N);
+        return [
+            {
+                variance: (S2 / N)
+            }
+        ];
     }
 }
