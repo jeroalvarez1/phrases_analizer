@@ -90,40 +90,80 @@ export class PhraseController {
     };
 
     public async updatePhrase(req: Request, res: Response) {
-        const conn = await connect();
-        conn.query('UPDATE phrases SET ? WHERE idphrases = ?', [req.body, req.params.phraseId], (error: any, result: any) => {
-            if (error) {
-                const errorCode: Err = {
-                    code: error.code
+        const prisma = new PrismaClient();
+        const errors = new Errors();
+        try {
+            const updatePhrase = await prisma.phrases.update({
+                data: {
+                    contents: req.body.contents,
+                },
+                where: {
+                    idphrases: Number(req.params.phraseId)
+                },
+                include: {
+                    phrase_feeling: true
                 }
-                res.status(400).send(errorCode);
-            };
-            if(result) {
-                res.status(201).send();
-            };
-        });
+            });
+            try {
+                const phraseFeelingService = new PhraseFeelingService();
+                let set: PhraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
+                set.phrases_idphrases = updatePhrase.idphrases;
+                const updatePhraseFeeling = await prisma.phrase_feeling.update({
+                    data: {
+                        score: set.score,
+                        numWords: set.numWords,
+                        numHits: set.numHits,
+                        average: set.average,
+                        type: set.type,
+                        locale: set.locale,
+                        vote: set.vote,
+                        phrases_idphrases: set.phrases_idphrases,
+                    },
+                    where: {
+                        idphrase_feeling: updatePhrase.phrase_feeling[0].idphrase_feeling
+                    },
+                    include: {
+                        phrases: true
+                    }
+                });
+                res.status(201).send(updatePhraseFeeling);
+            } catch (error) {
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
+        } catch (error) {
+            errors.prismaClientKnownRequestError(error, res);
+            errors.prismaClientUnknownRequestError(error, res);
+        }
     };
 
     public async deletePhrase(req: Request, res: Response) {
-        const conn = await connect();
-        conn.query('DELETE FROM phrases WHERE idphrases = ?', req.params.phraseId, (error: any, result: any) => {
-            if (error) {
-                const errorCode: Err = {
-                    code: error.code
+        const prisma = new PrismaClient();
+        try {
+            await prisma.phrases.delete({
+                where: {
+                    idphrases: Number(req.params.phraseId)
                 }
-                res.status(400).send(errorCode);
-            };
-            if(result) {
-                if (result.affectedRows === 1) {
-                    res.status(200).send();
-                } else {
-                    res.status(204).send();
-                };
-            };
-        });
+            });
+            res.status(200).send();
+        } catch (error) {
+            const errors = new Errors();
+            errors.prismaClientKnownRequestError(error, res);
+            errors.prismaClientUnknownRequestError(error, res);
+        }
     };
 
     public async deleteAll(req: Request, res: Response) {
+        const prisma = new PrismaClient();
+        try {
+            await prisma.phrases.deleteMany();
+            res.status(200).send();
+        } catch (error) {
+            const errors = new Errors();
+            errors.prismaClientKnownRequestError(error, res);
+            errors.prismaClientUnknownRequestError(error, res);
+        }
+        /*
         const conn = await connect();
         conn.query('DELETE FROM phrases;', (error: any, result: any) => {
             if (error) {
@@ -135,7 +175,7 @@ export class PhraseController {
             if(result) {
                 res.sendStatus(200);
             };
-        });
+        });*/
     }
     
 }
