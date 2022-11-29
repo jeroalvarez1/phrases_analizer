@@ -7,7 +7,6 @@ export class PhraseFeelingService {
     public async createPhraseFeeling(phrase: any) {
         const sentiment = new SentimentAnalyzer({ language: 'en' });
         const result = await sentiment.getSentiment(phrase.contents);
-        console.log(result);
         return result;
     };
 

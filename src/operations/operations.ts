@@ -1,6 +1,6 @@
 import { PhraseFeeling } from "../interfaces/phraseFeeling.iterface";
 import { ScoreClass } from "../interfaces/scoreClass.interface";
-import { connectdb } from "../db";
+import { PrismaClient } from '@prisma/client';
 
 export class Operations {
     
@@ -10,13 +10,13 @@ export class Operations {
     constructor() {};
 
     //Este metodo es le setter de data
-    public async setData() {
-        const conn = await connectdb();
-        const query = await conn.query('SELECT * FROM phrase_feeling');
+    public async setData() {    
+        const prisma = new PrismaClient();
+        const phrase_feeling = prisma.phrase_feeling.findMany();
         let phrasesFeeling: Array<PhraseFeeling> = [];
-        for (const [key, value] of Object.entries(query[0])) {
-            phrasesFeeling.push(value);
-        }
+        (await phrase_feeling).forEach(i => {
+            phrasesFeeling.push(i);
+        });
         this.data = phrasesFeeling;
     }
 

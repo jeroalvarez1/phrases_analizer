@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
-import { Err } from "../interfaces/err.interface";
 import { PhraseFeeling } from "../interfaces/phraseFeeling.iterface";
 import { PhraseFeelingService } from "../services/PhraseFeelingService";
-import { Prisma, PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { Errors } from "../accessories/errors";
 import { ResEmpty } from '../accessories/resEmpty';
 
@@ -55,35 +53,28 @@ export class PhraseController {
 
     public async createPhrase(req: Request, res: Response) {
         const prisma = new PrismaClient();
-        const errors = new Errors();
+        const phraseFeelingService = new PhraseFeelingService();
         try {
+            const set: PhraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
             const newPhrase = await prisma.phrases.create({
                 data: {
                     contents: req.body.contents,
+                    phrase_feeling: {
+                        create:{
+                            score: set.score,
+                            numWords: set.numWords,
+                            numHits: set.numHits,
+                            average: set.average,
+                            type: set.type,
+                            locale: set.locale,
+                            vote: set.vote
+                        }
+                    }
                 }
             });
-            try {
-                const phraseFeelingService = new PhraseFeelingService();
-                let set: PhraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
-                set.phrases_idphrases = newPhrase.idphrases;
-                await prisma.phrase_feeling.create({
-                    data: {
-                        score: set.score,
-                        numWords: set.numWords,
-                        numHits: set.numHits,
-                        average: set.average,
-                        type: set.type,
-                        locale: set.locale,
-                        vote: set.vote,
-                        phrases_idphrases: set.phrases_idphrases,
-                    }
-                });
-                res.sendStatus(201);
-            } catch (error) {
-                errors.prismaClientKnownRequestError(error, res);
-                errors.prismaClientUnknownRequestError(error, res);
-            }
+            res.status(201).send(newPhrase);
         } catch (error) {
+            const errors = new Errors();
             errors.prismaClientKnownRequestError(error, res);
             errors.prismaClientUnknownRequestError(error, res);
         }
@@ -91,47 +82,35 @@ export class PhraseController {
 
     public async updatePhrase(req: Request, res: Response) {
         const prisma = new PrismaClient();
-        const errors = new Errors();
+        const phraseFeelingService = new PhraseFeelingService();
         try {
+            const set: PhraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
             const updatePhrase = await prisma.phrases.update({
-                data: {
-                    contents: req.body.contents,
-                },
                 where: {
                     idphrases: Number(req.params.phraseId)
+                },
+                data: {
+                    contents: req.body.contents,
+                    phrase_feeling: {
+                        deleteMany: {},
+                        create: {
+                            score: set.score,
+                            numWords: set.numWords,
+                            numHits: set.numHits,
+                            average: set.average,
+                            type: set.type,
+                            locale: set.locale,
+                            vote: set.vote,
+                        }
+                    }
                 },
                 include: {
                     phrase_feeling: true
                 }
             });
-            try {
-                const phraseFeelingService = new PhraseFeelingService();
-                let set: PhraseFeeling = await phraseFeelingService.createPhraseFeeling(req.body);
-                set.phrases_idphrases = updatePhrase.idphrases;
-                const updatePhraseFeeling = await prisma.phrase_feeling.update({
-                    data: {
-                        score: set.score,
-                        numWords: set.numWords,
-                        numHits: set.numHits,
-                        average: set.average,
-                        type: set.type,
-                        locale: set.locale,
-                        vote: set.vote,
-                        phrases_idphrases: set.phrases_idphrases,
-                    },
-                    where: {
-                        idphrase_feeling: updatePhrase.phrase_feeling[0].idphrase_feeling
-                    },
-                    include: {
-                        phrases: true
-                    }
-                });
-                res.status(201).send(updatePhraseFeeling);
-            } catch (error) {
-                errors.prismaClientKnownRequestError(error, res);
-                errors.prismaClientUnknownRequestError(error, res);
-            }
+            res.status(201).send(updatePhrase);
         } catch (error) {
+            const errors = new Errors();
             errors.prismaClientKnownRequestError(error, res);
             errors.prismaClientUnknownRequestError(error, res);
         }
@@ -163,19 +142,6 @@ export class PhraseController {
             errors.prismaClientKnownRequestError(error, res);
             errors.prismaClientUnknownRequestError(error, res);
         }
-        /*
-        const conn = await connect();
-        conn.query('DELETE FROM phrases;', (error: any, result: any) => {
-            if (error) {
-                const errorCode: Err = {
-                    code: error.code
-                }
-                res.status(400).send(errorCode);
-            };
-            if(result) {
-                res.sendStatus(200);
-            };
-        });*/
     }
     
 }

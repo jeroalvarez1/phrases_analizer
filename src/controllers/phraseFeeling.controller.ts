@@ -1,48 +1,53 @@
-import { request, Request, Response } from "express";
-import { connect } from "../database";
-import { Err } from "../interfaces/err.interface";
+import { Request, Response } from "express";
 import { Mode } from '../operations/mode';
 import { Mean } from '../operations/mean';
 import { Operations } from "../operations/operations";
 import { Variance } from "../operations/variance";
 import { StandardDeviation } from "../operations/standardDeviation";
 import { CoefficientVariation } from "../operations/coefficientVariation";
+import { PrismaClient } from "@prisma/client";
+import { Errors } from "../accessories/errors";
+import { ResEmpty } from "../accessories/resEmpty";
 
 export class PhraseFeelingController {
     
 
     public async getAllPhraseFeeling(req: Request, res: Response) {
-        const conn = await connect();
-        conn.query('SELECT * FROM phrase_feeling', (error: any, result: any) => {
-            if (error) {
-                const errorCode: Err = {
-                    code: error.code
+
+        const prisma = new PrismaClient();
+        try {
+            const allPhraseFeeling = await prisma.phrase_feeling.findMany({
+                include: {
+                    phrases: true
                 }
-                res.status(400).send(errorCode);
-            };
-            if (!('' + result)) {
-                res.sendStatus(204);
-            } else {
-                res.status(200).send(result);
-            };       
-        });
+            })
+            const resEmpty = new ResEmpty();
+            resEmpty.resEmpty(allPhraseFeeling, res);
+        } catch (error) {
+            const errors = new Errors();
+            errors.prismaClientKnownRequestError(error, res);
+            errors.prismaClientUnknownRequestError(error, res);
+        }
     };
 
     public async getPhraseFeelingByidPhrase(req: Request, res: Response) {
-        const conn = await connect();
-        conn.query('SELECT * FROM phrase_feeling WHERE phrases_idphrases = ?', req.params.phraseId, (error: any, result: any) => {
-            if (error) {
-                const errorCode: Err = {
-                    code: error.code
+        const prisma = new PrismaClient();
+        try {
+            const phraseFeeling = await prisma.phrase_feeling.findMany({
+                where: {
+                    phrases_idphrases: Number(req.params.phraseId)
+                },
+                include: {
+                    phrases: true
                 }
-                res.status(400).send(errorCode);
-            };
-            if (!('' + result)) {
-                res.sendStatus(204);
-            } else {
-                res.status(200).send(result);
-            };       
-        });
+            });
+            const resEmpty = new ResEmpty();
+            resEmpty.resEmpty(phraseFeeling, res);
+        } catch (error) {
+            const errors = new Errors();
+            errors.prismaClientKnownRequestError(error, res);
+            errors.prismaClientUnknownRequestError(error, res);
+        }
     };
     
     public async getMode(req: Request, res: Response) {
