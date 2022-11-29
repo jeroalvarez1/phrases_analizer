@@ -10,149 +10,161 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PhraseController = void 0;
-const database_1 = require("../database");
 const PhraseFeelingService_1 = require("../services/PhraseFeelingService");
+const client_1 = require("@prisma/client");
+const errors_1 = require("../accessories/errors");
+const resEmpty_1 = require("../accessories/resEmpty");
 //import Phrase interface
 class PhraseController {
     constructor() { }
     ;
+    //Este metodo obtiene todos las Phrases
     getPhrase(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const conn = yield (0, database_1.connect)();
-            conn.query('SELECT * FROM phrases', (error, result) => {
-                if (error) {
-                    const errorCode = {
-                        code: error.code
-                    };
-                    res.status(400).send(errorCode);
-                }
-                ;
-                if (!('' + result)) {
-                    res.sendStatus(204);
-                }
-                else {
-                    res.status(200).send(result);
-                }
-                ;
-            });
+            const prisma = new client_1.PrismaClient();
+            try {
+                const allPhrases = yield prisma.phrases.findMany({
+                    include: {
+                        phrase_feeling: true
+                    }
+                });
+                const resEmpty = new resEmpty_1.ResEmpty();
+                resEmpty.resEmpty(allPhrases, res);
+            }
+            catch (error) {
+                const errors = new errors_1.Errors();
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
         });
     }
+    //Este metodo devuelve una phrase por id
     getPhraseById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const conn = yield (0, database_1.connect)();
-            conn.query('SELECT * FROM phrases WHERE idphrases = ?', req.params.phraseId, (error, result) => {
-                if (error) {
-                    const errorCode = {
-                        code: error.code
-                    };
-                    res.status(400).send(errorCode);
-                }
-                ;
-                if (!('' + result)) {
-                    res.sendStatus(204);
-                }
-                else {
-                    res.status(200).send(result);
-                }
-                ;
-            });
+            const prisma = new client_1.PrismaClient();
+            try {
+                const phrase = yield prisma.phrases.findUnique({
+                    where: {
+                        idphrases: Number(req.params.phraseId)
+                    },
+                    include: {
+                        phrase_feeling: true
+                    }
+                });
+                const resEmpty = new resEmpty_1.ResEmpty();
+                resEmpty.resEmpty(phrase, res);
+            }
+            catch (error) {
+                const errors = new errors_1.Errors();
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
         });
     }
     ;
     createPhrase(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const conn = yield (0, database_1.connect)();
-            conn.query('INSERT INTO phrases SET ?', req.body, (error, result) => __awaiter(this, void 0, void 0, function* () {
-                if (error) {
-                    const errorCode = {
-                        code: error.code
-                    };
-                    res.status(400).send(errorCode);
-                }
-                ;
-                if (result) {
-                    const phraseFeelingService = new PhraseFeelingService_1.PhraseFeelingService();
-                    const phraseFeeling = yield phraseFeelingService.createPhraseFeeling(req.body);
-                    let set = phraseFeeling;
-                    set.phrases_idphrases = result.insertId;
-                    conn.query('INSERT INTO phrase_feeling SET ?', set, (error, result) => {
-                        if (error) {
-                            const errorCode = {
-                                code: error.code
-                            };
-                            res.status(400).send(errorCode);
+            const prisma = new client_1.PrismaClient();
+            const phraseFeelingService = new PhraseFeelingService_1.PhraseFeelingService();
+            try {
+                const set = yield phraseFeelingService.createPhraseFeeling(req.body);
+                const newPhrase = yield prisma.phrases.create({
+                    data: {
+                        contents: req.body.contents,
+                        phrase_feeling: {
+                            create: {
+                                score: set.score,
+                                numWords: set.numWords,
+                                numHits: set.numHits,
+                                average: set.average,
+                                type: set.type,
+                                locale: set.locale,
+                                vote: set.vote
+                            }
                         }
-                        ;
-                        if (result) {
-                            res.sendStatus(201);
-                        }
-                    });
-                }
-                ;
-            }));
+                    }
+                });
+                res.status(201).send(newPhrase);
+            }
+            catch (error) {
+                const errors = new errors_1.Errors();
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
         });
     }
     ;
     updatePhrase(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const conn = yield (0, database_1.connect)();
-            conn.query('UPDATE phrases SET ? WHERE idphrases = ?', [req.body, req.params.phraseId], (error, result) => {
-                if (error) {
-                    const errorCode = {
-                        code: error.code
-                    };
-                    res.status(400).send(errorCode);
-                }
-                ;
-                if (result) {
-                    res.status(201).send();
-                }
-                ;
-            });
+            const prisma = new client_1.PrismaClient();
+            const phraseFeelingService = new PhraseFeelingService_1.PhraseFeelingService();
+            try {
+                const set = yield phraseFeelingService.createPhraseFeeling(req.body);
+                const updatePhrase = yield prisma.phrases.update({
+                    where: {
+                        idphrases: Number(req.params.phraseId)
+                    },
+                    data: {
+                        contents: req.body.contents,
+                        phrase_feeling: {
+                            deleteMany: {},
+                            create: {
+                                score: set.score,
+                                numWords: set.numWords,
+                                numHits: set.numHits,
+                                average: set.average,
+                                type: set.type,
+                                locale: set.locale,
+                                vote: set.vote,
+                            }
+                        }
+                    },
+                    include: {
+                        phrase_feeling: true
+                    }
+                });
+                res.status(201).send(updatePhrase);
+            }
+            catch (error) {
+                const errors = new errors_1.Errors();
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
         });
     }
     ;
     deletePhrase(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const conn = yield (0, database_1.connect)();
-            conn.query('DELETE FROM phrases WHERE idphrases = ?', req.params.phraseId, (error, result) => {
-                if (error) {
-                    const errorCode = {
-                        code: error.code
-                    };
-                    res.status(400).send(errorCode);
-                }
-                ;
-                if (result) {
-                    if (result.affectedRows === 1) {
-                        res.status(200).send();
+            const prisma = new client_1.PrismaClient();
+            try {
+                const { phraseId } = req.params;
+                yield prisma.phrases.delete({
+                    where: {
+                        idphrases: Number(phraseId)
                     }
-                    else {
-                        res.status(204).send();
-                    }
-                    ;
-                }
-                ;
-            });
+                });
+                res.status(200).send();
+            }
+            catch (error) {
+                const errors = new errors_1.Errors();
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
         });
     }
     ;
     deleteAll(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const conn = yield (0, database_1.connect)();
-            conn.query('DELETE FROM phrases;', (error, result) => {
-                if (error) {
-                    const errorCode = {
-                        code: error.code
-                    };
-                    res.status(400).send(errorCode);
-                }
-                ;
-                if (result) {
-                    res.sendStatus(200);
-                }
-                ;
-            });
+            const prisma = new client_1.PrismaClient();
+            try {
+                yield prisma.phrases.deleteMany();
+                res.status(200).send();
+            }
+            catch (error) {
+                const errors = new errors_1.Errors();
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
         });
     }
 }

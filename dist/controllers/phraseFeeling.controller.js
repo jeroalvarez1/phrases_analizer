@@ -10,77 +10,105 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PhraseFeelingController = void 0;
-const database_1 = require("../database");
-const PhraseFeelingService_1 = require("../services/PhraseFeelingService");
+const mode_1 = require("../operations/mode");
+const mean_1 = require("../operations/mean");
+const operations_1 = require("../operations/operations");
+const variance_1 = require("../operations/variance");
+const standardDeviation_1 = require("../operations/standardDeviation");
+const coefficientVariation_1 = require("../operations/coefficientVariation");
+const client_1 = require("@prisma/client");
+const errors_1 = require("../accessories/errors");
+const resEmpty_1 = require("../accessories/resEmpty");
 class PhraseFeelingController {
     getAllPhraseFeeling(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const conn = yield (0, database_1.connect)();
-            conn.query('SELECT * FROM phrase_feeling', (error, result) => {
-                if (error) {
-                    const errorCode = {
-                        code: error.code
-                    };
-                    res.status(400).send(errorCode);
-                }
-                ;
-                if (!('' + result)) {
-                    res.sendStatus(204);
-                }
-                else {
-                    res.status(200).send(result);
-                }
-                ;
-            });
+            const prisma = new client_1.PrismaClient();
+            try {
+                const allPhraseFeeling = yield prisma.phrase_feeling.findMany({
+                    include: {
+                        phrases: true
+                    }
+                });
+                const resEmpty = new resEmpty_1.ResEmpty();
+                resEmpty.resEmpty(allPhraseFeeling, res);
+            }
+            catch (error) {
+                const errors = new errors_1.Errors();
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
         });
     }
     ;
     getPhraseFeelingByidPhrase(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const conn = yield (0, database_1.connect)();
-            conn.query('SELECT * FROM phrase_feeling WHERE phrases_idphrases = ?', req.params.phraseId, (error, result) => {
-                if (error) {
-                    const errorCode = {
-                        code: error.code
-                    };
-                    res.status(400).send(errorCode);
-                }
-                ;
-                if (!('' + result)) {
-                    res.sendStatus(204);
-                }
-                else {
-                    res.status(200).send(result);
-                }
-                ;
-            });
+            const prisma = new client_1.PrismaClient();
+            try {
+                const phraseFeeling = yield prisma.phrase_feeling.findMany({
+                    where: {
+                        phrases_idphrases: Number(req.params.phraseId)
+                    },
+                    include: {
+                        phrases: true
+                    }
+                });
+                const resEmpty = new resEmpty_1.ResEmpty();
+                resEmpty.resEmpty(phraseFeeling, res);
+            }
+            catch (error) {
+                const errors = new errors_1.Errors();
+                errors.prismaClientKnownRequestError(error, res);
+                errors.prismaClientUnknownRequestError(error, res);
+            }
         });
     }
     ;
-    getPhraseFelingTotalAverage(req, res) {
+    getMode(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const phraseFeelingService = new PhraseFeelingService_1.PhraseFeelingService();
-            const average = yield phraseFeelingService.averageAllPhraseFeling();
-            if (average === false) {
-                res.sendStatus(204);
-            }
-            if (average != false) {
-                let vote = '';
-                if (average[0] > 0) {
-                    vote = 'More positive that negative';
-                }
-                else if (average[0] < 0) {
-                    vote = 'More negative that positive';
-                }
-                else if (average[0] == 0) {
-                    vote = 'Neutral';
-                }
-                return res.json({
-                    mean: average[0],
-                    mode: average[1],
-                    vote: vote
-                });
-            }
+            const mode = new mode_1.Mode();
+            yield mode.setData();
+            mode.setScore();
+            res.json(mode.calculateMode());
+        });
+    }
+    getMean(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const mean = new mean_1.Mean();
+            yield mean.setData();
+            mean.setScore();
+            res.status(200).send(mean.calculateMean());
+        });
+    }
+    getFrecuencyTable(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let operations = new operations_1.Operations();
+            yield operations.setData();
+            operations.setScore();
+            res.status(200).send(operations.groupScore());
+        });
+    }
+    getVariance(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let variance = new variance_1.Variance();
+            yield variance.setData();
+            variance.setScore();
+            res.status(200).send(variance.calculateVariance());
+        });
+    }
+    getStandardDeviation(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let standardDeviation = new standardDeviation_1.StandardDeviation();
+            yield standardDeviation.setData();
+            standardDeviation.setScore();
+            res.status(200).send(standardDeviation.calculateDeviation());
+        });
+    }
+    getCoefficientVariation(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let coefficientVariation = new coefficientVariation_1.CoefficientVariation();
+            yield coefficientVariation.setData();
+            coefficientVariation.setScore();
+            res.status(200).send(coefficientVariation.calculateCofficient());
         });
     }
 }

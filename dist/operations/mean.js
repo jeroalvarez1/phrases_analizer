@@ -3,16 +3,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Mean = void 0;
 const operations_1 = require("./operations");
 class Mean extends operations_1.Operations {
-    calculate(data) {
-        this.setData(data);
-        let sum = 0;
-        let cont = 0;
-        let scoreList = this.getOrganizeScore();
-        scoreList.forEach(element => {
-            sum = sum + element;
-            cont++;
+    constructor() {
+        super();
+    }
+    ;
+    calculateMean() {
+        let N = 0;
+        let X = 0;
+        this.groupScore().forEach(i => {
+            X = X + (((i.lneg + i.lpos) / 2) * i.rep);
+            N = N + i.rep;
         });
-        return (sum / cont);
+        return [
+            {
+                mean: (X / N)
+            }
+        ];
     }
 }
 exports.Mean = Mean;

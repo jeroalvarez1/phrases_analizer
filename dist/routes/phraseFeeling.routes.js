@@ -8,6 +8,16 @@ router.route('/phrasefeeling')
     .get(phraseFeeling.getAllPhraseFeeling);
 router.route('/phrase/:phraseId/phrasefeeling')
     .get(phraseFeeling.getPhraseFeelingByidPhrase);
-router.route('/phrasefeeling/average')
-    .get(phraseFeeling.getPhraseFelingTotalAverage);
+router.route('/phrasefeeling/mode')
+    .get(phraseFeeling.getMode);
+router.route('/phrasefeeling/mean')
+    .get(phraseFeeling.getMean);
+router.route('/phrasefeeling/frecuencytable')
+    .get(phraseFeeling.getFrecuencyTable);
+router.route('/phrasefeeling/variance')
+    .get(phraseFeeling.getVariance);
+router.route('/phrasefeeling/standarddeviation')
+    .get(phraseFeeling.getStandardDeviation);
+router.route('/phrasefeeling/coefficientvariation')
+    .get(phraseFeeling.getCoefficientVariation);
 exports.default = router;
