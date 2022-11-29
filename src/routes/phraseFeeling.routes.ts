@@ -26,6 +26,6 @@ router.route('/phrasefeeling/standarddeviation')
     .get(phraseFeeling.getStandardDeviation)    
     
 router.route('/phrasefeeling/coefficientvariation')
-    .get(phraseFeeling.getCoefficientVariation)    
-    
+    .get(phraseFeeling.getCoefficientVariation)
+
 export default router;

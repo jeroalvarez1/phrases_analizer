@@ -49,7 +49,7 @@ export class PhraseFeelingController {
             errors.prismaClientUnknownRequestError(error, res);
         }
     };
-    
+
     public async getMode(req: Request, res: Response) {
         const mode = new Mode();
         await mode.setData();

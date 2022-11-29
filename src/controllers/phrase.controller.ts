@@ -119,9 +119,10 @@ export class PhraseController {
     public async deletePhrase(req: Request, res: Response) {
         const prisma = new PrismaClient();
         try {
+            const {phraseId} = req.params;
             await prisma.phrases.delete({
                 where: {
-                    idphrases: Number(req.params.phraseId)
+                    idphrases: Number(phraseId)
                 }
             });
             res.status(200).send();
